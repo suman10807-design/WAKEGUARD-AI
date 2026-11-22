@@ -1,0 +1,48 @@
+
+name: WAKEGUARD AI APK Builder
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'WAKEGUARD_AI_Android_Starter.zip'
+      - '.github/workflows/build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK
+        run: |
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Extract project
+        run: |
+          mkdir project
+          unzip -q WAKEGUARD_AI_Android_Starter.zip -d project
+          find project -name settings.gradle.kts
+
+      - name: Build APK
+        run: |
+          cd project/WAKEGUARD_AI
+          gradle --version
+          gradle assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: WAKEGUARD-AI-APK
+          path: project/WAKEGUARD_AI/app/build/outputs/apk/debug/app-debug.apk
