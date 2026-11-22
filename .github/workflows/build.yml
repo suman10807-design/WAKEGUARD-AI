@@ -32,10 +32,42 @@ jobs:
         run: |
           mkdir project
           unzip -q WAKEGUARD_AI_Android_Starter.zip -d project
-          find project -name settings.gradle -o -name settings.gradle.kts
+
+      - name: Align Java target with Kotlin
+        shell: bash
+        run: |
+          KTS="project/WAKEGUARD_AI/app/build.gradle.kts"
+          GROOVY="project/WAKEGUARD_AI/app/build.gradle"
+
+          if [ -f "$KTS" ]; then
+            cat >> "$KTS" <<'EOF'
+
+          android {
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+          }
+          EOF
+          elif [ -f "$GROOVY" ]; then
+            cat >> "$GROOVY" <<'EOF'
+
+          android {
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+          }
+          EOF
+          else
+            echo "App Gradle file not found"
+            exit 1
+          fi
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
 
       - name: Build APK
         run: |
